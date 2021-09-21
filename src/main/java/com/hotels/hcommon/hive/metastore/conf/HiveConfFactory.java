@@ -32,6 +32,9 @@ public class HiveConfFactory {
 
   private static final Logger LOG = LoggerFactory.getLogger(HiveConfFactory.class);
 
+  private static HiveConf hiveConf = new HiveConf(new Configuration(true),
+      HiveConfFactory.class);
+
   private final List<String> resources;
   private final Map<String, String> properties;
 
@@ -44,22 +47,11 @@ public class HiveConfFactory {
   }
 
   public HiveConf newInstance() {
-    HiveConf conf;
-
-    synchronized (HiveConf.class) {
-      if (resources != null) {
-        // The following prevents HiveConf from loading the default hadoop
-        // *-site.xml and hive-site.xml if they're on the classpath.
-        URL hiveSiteLocation = HiveConf.getHiveSiteLocation();
-        HiveConf.setHiveSiteLocation(null);
-        conf = new HiveConf(new Configuration(false), getClass());
-        HiveConf.setHiveSiteLocation(hiveSiteLocation);
-        for (String resource : resources) {
-          LOG.debug("Adding custom resource: {}", resource);
-          conf.addResource(resource);
-        }
-      } else {
-        conf = new HiveConf(new Configuration(true), getClass());
+    HiveConf conf = new HiveConf(hiveConf);
+    if (resources != null) {
+      for (String resource : resources) {
+        LOG.debug("Adding custom resource: {}", resource);
+        conf.addResource(resource);
       }
     }
 
